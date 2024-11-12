@@ -38,21 +38,23 @@ function [h_best, pi_opt, iter] = subgrad_optm(dimX, dimY, k, com, max_iter, the
         %    end
         %end
 
-
+        
         % Calculate cost per route; remove route with
         % cost > 1 (required routes stored in nl and pairs in com)
+        h_pi = 0; % Init h_pi
+
         last = 0;
         for i = 1 : k;
             first = last+1;
             slask = find(nl(last+1:length(nl)) == com(i,1));
             last = slask(1)+first-1;
             if (sum(pi(nl(first:last))) < 1)
-                okcom = [okcom i]; newnl = [newnl; nl(first:last)];
+                okcom = [okcom i]; newnl = [newnl; nl(first:last)]; h_pi = h_pi + sum(pi(nl(first:last)));
             end
         end
 
         %STILL HAVE TO CALC h_pi
-        h_pi = sum(pi) + 
+        h_pi = h_pi + sum(pi) 
         
         % Update best dual value
         h_best = max(h_best, h_pi);
