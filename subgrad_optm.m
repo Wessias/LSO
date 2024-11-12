@@ -48,12 +48,13 @@ function [h_best, pi_opt, iter] = subgrad_optm(dimX, dimY, k, com, max_iter, the
             first = last+1;
             slask = find(nl(last+1:length(nl)) == com(i,1));
             last = slask(1)+first-1;
-            if (sum(pi(nl(first:last))) < 1)
-                okcom = [okcom i]; newnl = [newnl; nl(first:last)]; h_pi = h_pi + sum(pi(nl(first:last)));
+            cost = sum(pi(nl(first:last)));
+            if (cost < 1)
+                okcom = [okcom i]; newnl = [newnl; nl(first:last)]; h_pi = h_pi + cost;
             end
         end
 
-        %STILL HAVE TO CALC h_pi
+        %STILL HAVE TO FINISH CALC OF h_pi
         h_pi = h_pi + sum(pi) 
         
         % Update best dual value
