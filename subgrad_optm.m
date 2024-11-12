@@ -63,8 +63,8 @@ function [h_best, pi_opt, iter] = subgrad_optm(dimX, dimY, k, com, max_iter, the
         % Step 2: Compute subgradients
         gamma = zeros(size(pi));  % Initialize subgradient
         for i = 1:length(pi)
-            gamma(i) = 1 - sum(nl == i);  % Count routes passing through node i
-            %CHECK IF THIS MAKES SENSE
+            gamma(i) = 1 - sum(newnl == i);  % Count routes passing through node i
+            %CHECK IF THIS MAKES SENSE (think it does)
         end
         
         % Step 3: Calculate step length
