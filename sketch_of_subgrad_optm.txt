@@ -1,0 +1,46 @@
+Algorithm 1 The subgradient scheme
+1: Let t := 0 and initialize u0 and θ0
+2: Solve the Lagrangean subproblem for u = ut and calculate an upper bound h(ut)
+on the optimal value
+3: Calculate a subgradient direction γγγt and the step length αt
+4: Calculate ut+1
+5: Update the value of θt
+6: Until a termination criterion is fulfilled, let t := t + 1 and repeat from 2
+
+
+
+
+function lagrangean_dual(dimX, dimY, k, com)
+    % Initialization
+    u = zeros(dimX * dimY, 1); % Initial dual variables
+    max_iter = 1000;           % Maximum iterations
+    theta = 2;                 % Initial step size parameter
+    ub = inf;                  % Best upper bound found
+    lb = -inf;                 % Best lower bound found
+
+    % Iterative Subgradient Optimization
+    for t = 1:max_iter
+        % Solve the Lagrangean subproblem
+        [routes, obj_value] = solve_subproblem(dimX, dimY, u, k, com);
+        
+        % Update upper bound
+        ub = min(ub, obj_value);
+        
+        % Compute subgradient
+        subgrad = compute_subgradient(routes, dimX, dimY, k);
+        
+        % Compute step size
+        step_size = theta * (ub - lb) / norm(subgrad)^2;
+        
+        % Update dual variables (ensure non-negativity)
+        u = max(0, u + step_size * subgrad);
+        
+        % Decrease theta periodically
+        if mod(t, 10) == 0
+            theta = theta * 0.95;
+        end
+        
+        % Log and plot progress
+        fprintf('Iteration %d: UB = %.2f, LB = %.2f\n', t, ub, lb);
+    end
+end
