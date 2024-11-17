@@ -8,3 +8,7 @@ com = [1 45;
        5 46; 
        6 47; 
        7 48];
+
+
+[h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, ...
+    k, com, 100, 2);
