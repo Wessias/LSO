@@ -45,7 +45,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
             last = slask(1)+first-1;
             cost = sum(pi(nl(first:last)));
             if (cost < 1)
-                okcom = [okcom i]; newnl = [newnl; nl(first:last)]; h_pi = h_pi + 1 - cost;
+                okcom = [okcom i]; newnl = [newnl; nl(first:last)]; h_pi = h_pi + 1 - cost; %Wrong?
             end
         end
 
