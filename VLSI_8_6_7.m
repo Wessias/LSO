@@ -11,4 +11,4 @@ com = [1 45;
 
 
 [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, ...
-    k, com, 100, 2);
+    k, com, 1000, 2);

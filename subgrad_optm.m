@@ -19,10 +19,12 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
     pi = zeros(dimX * dimY * 2, 1);  % Dual variables
     h_best = inf;  % Best dual objective value found (minimize h)
     theta = theta_init;  % Initial step size multiplier
+    h_lbd = 0;
     
     % To track progress over iterations
     h_values = zeros(max_iter, 1);  % Store h(pi) values for each iteration
     
+
     % Iterate for subgradient optimization
     for iter = 1:max_iter
         % Step 1: Solve Lagrangean subproblem using gsp
@@ -38,17 +40,13 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         for i = 1:k
             % Find route for contact pair
             first = last + 1;
-            slask = find(nl(last+1:end) == com(i,1));
-            if isempty(slask)
-                fprintf('Warning: No route found for contact pair %d.\n', i);
-                continue;  % Skip this pair
-            end
+            slask = find(nl(last+1:length(nl)) == com(i,1));
             last = slask(1) + first - 1;
             route = nl(first:last);  % Extract route nodes
             
             % Calculate cost of the route
-            cost = sum(pi(route));
-            fprintf('Contact pair %d: Cost = %.4f, Route = [%s]\n', i, cost, num2str(route'));
+            cost = sum(pi(nl(first:last)));
+            fprintf('Contact pair %d: Cost = %f, Route = [%s]\n', i, cost, num2str(route'));
             
             % If route is feasible, update h(pi) and store details
             if cost < 1
@@ -72,11 +70,11 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         
         % Step 4: Calculate step length
         epsilon = 1e-6;  % Safeguard for numerical stability
-        step_length = max(1e-4, theta * (h_pi - h_best) / (norm(gamma)^2 + epsilon));
+        step_length = max(1e-4, theta * (h_pi - h_lbd) / (norm(gamma)^2 + epsilon));
         fprintf('Step length at iteration %d: %.4e\n', iter, step_length);
         
         % Step 5: Update dual variables
-        pi = max(0, pi + step_length * gamma);  % Ensure pi >= 0 (projection)
+        pi = max(0, pi - step_length * gamma);  % Ensure pi >= 0 (projection)
         %fprintf('Dual variables (pi) at iteration %d:\n', iter);
         %disp(pi');  % Display dual variables as a row vector
         fprintf('Updated dual variables (pi) at iteration %d: [%s]\n', iter, num2str(pi'));
@@ -87,6 +85,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
             theta = theta * 0.95;  % Decay step size multiplier
         end
         
+        fprintf("--------------------------\n");
         % Optional early stopping based on subgradient norm
         if norm(gamma) < 1e-4
             fprintf('Convergence achieved: Subgradient norm < tolerance.\n');
