@@ -20,7 +20,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
     h_best = inf;  % Best dual objective value found (minimize h)
     theta = theta_init;  % Initial step size multiplier
     h_lbd = 0;
-    s_k = 10
+    s_k = 10 % for s^k rule
 
     
     
