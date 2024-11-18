@@ -20,17 +20,25 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
     h_best = inf;  % Best dual objective value found (minimize h)
     theta = theta_init;  % Initial step size multiplier
     h_lbd = 0;
+    s_k = 10
 
     
     
     % To track progress over iterations
     h_values = zeros(max_iter, 1);  % Store h(pi) values for each iteration
     
+    % Start of ergodic sequence
+    x_ergodic = zeros(2 * dimX * dimY, 2* dimX * dimY, k)
+    x_ergodic_old = zeros(2 * dimX * dimY, 2* dimX * dimY, k)
+    x_old = zeros(2 * dimX * dimY, 2* dimX * dimY, k); 
 
     % Iterate for subgradient optimization
     for iter = 1:max_iter
-        % Initialize x_{ijl} and tracker of feasible routes
-        x = zeros(dimX * dimY + 1, dimX * dimY + 1, k);
+
+        % Initialize x_{ijl} and tracker of feasible routes, x_new is used to calculate ergodic sequence.
+        
+        x_new = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
+        
         feasible_routes = cell(1, k);
         feasible_routes(:) = {0};
 
@@ -95,26 +103,39 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
             theta = theta * 0.95;  % Decay step size multiplier
         end
         
-        fprintf("--------------------------\n");
-        % Optional early stopping based on subgradient norm
-        if norm(gamma) < 1e-4
-            fprintf('Convergence achieved: Subgradient norm < tolerance.\n');
-            h_values = h_values(1:iter);  % Truncate unused values
-            break;
-        end
+        %HEURISTIC AND ERGODIC SEQUENCE STUFF
 
         %Populate x based on routes and valid paths.
         for l = 1:k       
-            if ~isequal(feasible_routes{i}, 0)
-                route = feasible_routes{i};
+            if ~isequal(feasible_routes{l}, 0)
+                route = feasible_routes{l};
                 %Populate based on route for pair l
                 for idx = 1:length(route)-1
                     i = route(idx);       % Start node
                     j = route(idx+1);     % End node
-                    x(i, j, l) = 1;       % Set x_{ijl} = 1
+                    x_new(i, j, l) = 1;       % Set x_{ijl} = 1
                 end
-                x(dimX * dimY + 1, dimY * dimX + 1, l) = 1 % Set logical path to 1
+                x_new(com(l, 1), com(l, 2), l) = 1; % Set logical path from start node to termination node = 1
             end
+        end
+
+        %Calculate s^k rule stuff
+        denom1 = 0
+        for s = 0:i-2
+            denom1 = denom1 + (s+1)^s_k
+        end
+
+        num1 = 0
+        for s = 0:i-1
+            num1 = num1 + (s+1)^s_k
+        end
+    
+
+        x_ergodic = (denom1 / num1) * x_ergodic + (t^(s_k) / num1) * x_old  
+
+        x_old = x_new
+        
+
     end
     
     % Plot convergence of h(pi)
