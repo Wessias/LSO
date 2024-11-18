@@ -35,10 +35,8 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
     % Iterate for subgradient optimization
     for iter = 1:max_iter
 
-        % Initialize x_{ijl} and tracker of feasible routes, x_new is used to calculate ergodic sequence.
-        
+        % Initialize x_{ijl} and tracker of feasible routes
         x_new = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
-        
         feasible_routes = cell(1, k);
         feasible_routes(:) = {0};
 
@@ -46,7 +44,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
 
         % Step 1: Solve Lagrangean subproblem using gsp
         nl = gsp(dimX, dimY, pi, k, com);
-        fprintf('Iteration %d: Solved Lagrangean subproblem.\n', iter);
+        %fprintf('Iteration %d: Solved Lagrangean subproblem.\n', iter);
         
         % Step 2: Calculate h(pi) and extract feasible routes
         h_pi = sum(pi);  % Start with sum of dual variables
@@ -63,7 +61,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
             
             % Calculate cost of the route
             cost = sum(pi(nl(first:last)));
-            fprintf('Contact pair %d: Cost = %f, Route = [%s]\n', i, cost, num2str(route'));
+            %fprintf('Contact pair %d: Cost = %f, Route = [%s]\n', i, cost, num2str(route'));
             
             % If route is feasible, update h(pi) and store details
             if cost < 1
@@ -77,25 +75,25 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         % Update best dual value
         h_best = min(h_best, h_pi);  % Minimize dual objective
         h_values(iter) = h_pi;  % Store current h(pi) for plotting
-        fprintf('Iteration %d: h(pi) = %.4f, h_best = %.4f\n', iter, h_pi, h_best);
+        %fprintf('Iteration %d: h(pi) = %.4f, h_best = %.4f\n', iter, h_pi, h_best);
         
         % Step 3: Compute subgradients
         gamma = zeros(size(pi));  % Initialize subgradient
         for i = 1:length(pi)
             gamma(i) = 1 - sum(newnl == i);  % Count routes passing through node i
         end
-        fprintf('Subgradient norm at iteration %d: %.4e\n', iter, norm(gamma));
+        %fprintf('Subgradient norm at iteration %d: %.4e\n', iter, norm(gamma));
         
         % Step 4: Calculate step length
         epsilon = 1e-6;  % Safeguard for numerical stability
         step_length = max(1e-4, theta * (h_pi - h_lbd) / (norm(gamma)^2 + epsilon));
-        fprintf('Step length at iteration %d: %.4e\n', iter, step_length);
+        %fprintf('Step length at iteration %d: %.4e\n', iter, step_length);
         
         % Step 5: Update dual variables
         pi = max(0, pi - step_length * gamma);  % Ensure pi >= 0 (projection)
         %fprintf('Dual variables (pi) at iteration %d:\n', iter);
         %disp(pi');  % Display dual variables as a row vector
-        fprintf('Updated dual variables (pi) at iteration %d: [%s]\n', iter, num2str(pi'));
+        %fprintf('Updated dual variables (pi) at iteration %d: [%s]\n', iter, num2str(pi'));
 
         
         % Step 6: Update theta periodically
@@ -120,20 +118,27 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         end
 
         %Calculate s^k rule stuff
-        denom1 = 0
-        for s = 0:i-2
-            denom1 = denom1 + (s+1)^s_k
-        end
+        if iter ~= 1
+            % Calculate denominators and numerators for s^k-rule
+            denom1 = 0;
+            for s = 0:iter-2
+                denom1 = denom1 + (s+1)^s_k;
+            end
 
-        num1 = 0
-        for s = 0:i-1
-            num1 = num1 + (s+1)^s_k
-        end
+            num1 = 0;
+            for s = 0:iter-1
+                num1 = num1 + (s+1)^s_k;
+            end
     
+            % Update x_ergodic
+            x_ergodic = (denom1 / num1) * x_ergodic + (iter^(s_k) / num1) * x_old;
+        else
+            % First iteration: Initialize x_ergodic to x_new (x_0)
+            x_ergodic = x_new; %For first iteration
+        end
 
-        x_ergodic = (denom1 / num1) * x_ergodic + (t^(s_k) / num1) * x_old  
-
-        x_old = x_new
+        % Update x_old for the next iteration
+        x_old = x_new;
         
 
     end
