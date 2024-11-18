@@ -20,6 +20,8 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
     h_best = inf;  % Best dual objective value found (minimize h)
     theta = theta_init;  % Initial step size multiplier
     h_lbd = 0;
+
+    
     
     % To track progress over iterations
     h_values = zeros(max_iter, 1);  % Store h(pi) values for each iteration
@@ -27,6 +29,13 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
 
     % Iterate for subgradient optimization
     for iter = 1:max_iter
+        % Initialize x_{ijl} and tracker of feasible routes
+        x = zeros(dimX * dimY + 1, dimX * dimY + 1, k);
+        feasible_routes = cell(1, k);
+        feasible_routes(:) = {0};
+
+
+
         % Step 1: Solve Lagrangean subproblem using gsp
         nl = gsp(dimX, dimY, pi, k, com);
         fprintf('Iteration %d: Solved Lagrangean subproblem.\n', iter);
@@ -53,6 +62,7 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
                 okcom = [okcom, i];         % Add feasible pair index
                 newnl = [newnl; route];    % Add route to feasible routes
                 h_pi = h_pi + (1 - cost);  % Reward feasibility
+                feasible_routes{i} = route;
             end
         end
         
@@ -92,6 +102,19 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
             h_values = h_values(1:iter);  % Truncate unused values
             break;
         end
+
+        %Populate x based on routes and valid paths.
+        for l = 1:k       
+            if ~isequal(feasible_routes{i}, 0)
+                route = feasible_routes{i};
+                %Populate based on route for pair l
+                for idx = 1:length(route)-1
+                    i = route(idx);       % Start node
+                    j = route(idx+1);     % End node
+                    x(i, j, l) = 1;       % Set x_{ijl} = 1
+                end
+                x(dimX * dimY + 1, dimY * dimX + 1, l) = 1 % Set logical path to 1
+            end
     end
     
     % Plot convergence of h(pi)
