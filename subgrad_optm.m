@@ -118,15 +118,15 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         end
 
         %Calculate s^k rule stuff
-        if iter ~= 1
+        if iter - 1 ~= 0
             % Calculate denominators and numerators for s^k-rule
             denom1 = 0;
-            for s = 0:iter-2
+            for s = 0:iter-1-2
                 denom1 = denom1 + (s+1)^s_k;
             end
 
             num1 = 0;
-            for s = 0:iter-1
+            for s = 0:iter-1-1
                 num1 = num1 + (s+1)^s_k;
             end
     
@@ -142,6 +142,8 @@ function [h_best, pi_opt, iter, okcom, newnl] = subgrad_optm(dimX, dimY, k, com,
         
 
     end
+
+    x_binary = x_ergodic > 0.9;
     
     % Plot convergence of h(pi)
     figure;
