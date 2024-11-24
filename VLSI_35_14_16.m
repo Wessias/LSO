@@ -18,3 +18,7 @@ com = [ 3   470;
     29   488;
     32   461;
     35   460];
+
+
+
+subgrad_optm(dimX, dimY, k, com, 1000, 2);
