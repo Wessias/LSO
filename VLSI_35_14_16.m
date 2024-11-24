@@ -20,5 +20,5 @@ com = [ 3   470;
     35   460];
 
 
-
-subgrad_optm(dimX, dimY, k, com, 1000, 2);
+[h_best, pi_opt, iter, okcom, newnl, best_primal, route] = subgrad_optm_og(dimX, dimY, ...
+    k, com, 5000, 2);
