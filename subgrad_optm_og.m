@@ -20,7 +20,6 @@ function [h_best, pi_opt, iter, okcom, newnl, h_lbd, best_route] = subgrad_optm(
     h_best = inf;  % Best dual objective value found (minimize h)
     theta = theta_init;  % Initial step size multiplier
     h_lbd = 0;
-    s_k = 10; % for s^k rule
 
     
     
@@ -28,18 +27,14 @@ function [h_best, pi_opt, iter, okcom, newnl, h_lbd, best_route] = subgrad_optm(
     h_values = zeros(max_iter, 1);  % Store h(pi) values for each iteration
     z_values = zeros(max_iter, 1);
 
-    % Start of ergodic sequence
-    x_ergodic = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
-    x_ergodic_old = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
-    x_old = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
     best_route = [];
     bestnl = [];
 
     % Iterate for subgradient optimization
     for iter = 1:max_iter
 
-        % Initialize x_{ijl} and tracker of feasible routes
-        x_new = zeros(2 * dimX * dimY, 2* dimX * dimY, k);
+        % Initialize tracker of feasible routes
+        
         feasible_routes = cell(1, k);
         feasible_routes(:) = {0};
 
